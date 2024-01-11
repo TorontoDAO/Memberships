@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Votes.sol";
 
 //Soul bound Membership NFT for Toronto DAO
-contract TDAO_Membership is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes {
+contract TDAO_Memberships is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes {
     uint256 private _nextTokenId;
 
     // Mapping to store the soulbound status of each token
@@ -20,13 +20,35 @@ contract TDAO_Membership is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Vot
         EIP712("TorontoDAO", "1")
     {}
 
-    function safeMint(address to, string memory uri, bool soulbound) public onlyOwner {
+        /**
+     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
+     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
+     * by default, can be overridden in child contracts.
+     */
+
+    string internal __baseURI;
+    function _baseURI() internal view override returns (string memory) {
+        return __baseURI;
+    }
+
+    bool public metadataLocked = false;
+
+    function lockMetadata() public onlyOwner() {
+        metadataLocked = true; 
+    }
+
+    function updateBaseURI(string memory ___baseURI) public onlyOwner() {
+        require(!metadataLocked, "Metadata is Locked");
+        __baseURI = ___baseURI;
+    } 
+     
+    function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+        _setTokenURI(tokenId, "");
 
         // Set the soulbound status of the token
-        _soulboundTokens[tokenId] = soulbound;
+        _soulboundTokens[tokenId] = true;
     }
 
     // Function to check if a token is soulbound
@@ -57,7 +79,7 @@ contract TDAO_Membership is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Vot
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        return string.concat(super.tokenURI(tokenId), ".png");
     }
 
     function supportsInterface(bytes4 interfaceId)
