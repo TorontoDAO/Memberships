@@ -25,6 +25,22 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
         __UUPSUpgradeable_init();
     }
 
+    string internal __baseURI;
+    function _baseURI() internal view override returns (string memory) {
+        return __baseURI;
+    }
+
+    bool public metadataLocked = false;
+
+    function lockMetadata() public onlyOwner() {
+        metadataLocked = true; 
+    }
+
+    function updateBaseURI(string memory ___baseURI) public onlyOwner() {
+        require(!metadataLocked, "Metadata is Locked");
+        __baseURI = ___baseURI;
+    } 
+
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
