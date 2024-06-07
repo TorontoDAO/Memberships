@@ -17,6 +17,9 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
         _disableInitializers();
     }
 
+    mapping(uint id => uint expiry) expiryDates;
+
+
     function initialize(address initialOwner) initializer public {
         __ERC721_init("TDAO Membership", "TDAO");
         __Ownable_init(initialOwner);
@@ -43,6 +46,7 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
 
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
+
         _safeMint(to, tokenId);
     }
 
