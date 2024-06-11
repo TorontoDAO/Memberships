@@ -46,8 +46,12 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
 
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
-
+        expiryDates[tokenId] = block.timestamp + 365 days;  
         _safeMint(to, tokenId);
+    }
+
+    function renew(uint tokenId) public onlyOwner{
+        expiryDates[tokenId] = block.timestamp + 365 days;  
     }
 
     function _authorizeUpgrade(address newImplementation)
