@@ -17,7 +17,7 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
         _disableInitializers();
     }
 
-    mapping(uint id => uint expiry) expiryDates;
+    mapping(address member => uint expiry) expiryDates;
 
 
     function initialize(address initialOwner) initializer public {
@@ -46,12 +46,20 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
 
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
-        expiryDates[tokenId] = block.timestamp + 365 days;  
+        expiryDates[to] = block.timestamp + 60 seconds;  
         _safeMint(to, tokenId);
     }
 
-    function renew(uint tokenId) public onlyOwner{
-        expiryDates[tokenId] = block.timestamp + 365 days;  
+    function renew(address to) public onlyOwner{
+        expiryDates[to] = block.timestamp + 60 seconds;  
+    }
+
+    function balanceOf(address owner) public view override returns (uint256) {
+        if(expiryDates[owner]<block.timestamp){
+            return 0;
+        } else {
+            return super.balanceOf(owner);
+        }
     }
 
     function _authorizeUpgrade(address newImplementation)
