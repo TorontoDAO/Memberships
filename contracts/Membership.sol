@@ -12,13 +12,26 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable, EIP712Upgradeable, ERC721VotesUpgradeable, UUPSUpgradeable {
     uint256 private _nextTokenId;
 
+    mapping(address member => uint expiry) expiryDates;
+    mapping(address => bool) public minters;
+
+    modifier onlyMinter() {
+        require(minters[msg.sender], "Only approved minters can call this function");
+        _;
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    mapping(address member => uint expiry) expiryDates;
+    function addMinter(address _newMinter) public onlyOwner {
+        minters[_newMinter] = true;
+    }
 
+    function removeMinter(address _minter) public onlyOwner {
+        minters[_minter] = false;
+    }
 
     function initialize(address initialOwner) initializer public {
         __ERC721_init("TDAO Membership", "TDAO");
@@ -44,13 +57,13 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
         __baseURI = ___baseURI;
     } 
 
-    function safeMint(address to) public onlyOwner {
+    function safeMint(address to) public onlyMinter {
         uint256 tokenId = _nextTokenId++;
         expiryDates[to] = block.timestamp + 60 seconds;  
         _safeMint(to, tokenId);
     }
 
-    function renew(address to) public onlyOwner{
+    function renew(address to) public onlyMinter{
         expiryDates[to] = block.timestamp + 60 seconds;  
     }
 
@@ -60,6 +73,10 @@ contract TDAOMembership is Initializable, ERC721Upgradeable, OwnableUpgradeable,
         } else {
             return super.balanceOf(owner);
         }
+    }
+
+    function test() public pure returns (uint256) {
+        return 5;
     }
 
     function _authorizeUpgrade(address newImplementation)
